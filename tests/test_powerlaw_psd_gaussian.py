@@ -1,20 +1,21 @@
 import unittest
 import numpy as np
 import colorednoise as cn
+from jax.random import PRNGKey
 
 
 class TestPowerlawPsdGaussian(unittest.TestCase):
     # these only test very basic functioning as of yet
     def test_powerlaw_psd_gaussian_scalar_output_shape(self):
-        n = cn.powerlaw_psd_gaussian(1, 16)
+        n = np.array(cn.powerlaw_psd_gaussian(1, 16))
         self.assertEqual(n.shape, (16,))
 
     def test_powerlaw_psd_gaussian_vector_output_shape(self):
-        n = cn.powerlaw_psd_gaussian(1, (100,5))
+        n = np.array(cn.powerlaw_psd_gaussian(1, (100,5)))
         self.assertEqual(n.shape, (100,5))
 
     def test_powerlaw_psd_gaussian_output_finite(self):
-        n = cn.powerlaw_psd_gaussian(1, 16, fmin=0.1)
+        n = np.array(cn.powerlaw_psd_gaussian(1, 16, fmin=0.1))
         self.assertTrue(np.isfinite(n).all())
 
     def test_var_distribution(self):
@@ -24,7 +25,7 @@ class TestPowerlawPsdGaussian(unittest.TestCase):
         rng = np.random.default_rng(1)
         
         for exponent in [.5, 1, 2]:
-            y = cn.powerlaw_psd_gaussian(exponent, size, fmin=fmin, random_state=rng)
+            y = np.array(cn.powerlaw_psd_gaussian(exponent, size, fmin=fmin, random_state=None))
             ystd = y.std(axis=-1)
             var_in = (abs(1 - ystd) < 3 * ystd.std()).mean() # var within 3 sigma
             self.assertTrue(var_in > 0.95) # should even be > 0.99 since distr. normal
@@ -33,9 +34,9 @@ class TestPowerlawPsdGaussian(unittest.TestCase):
         # test deviation from unit variance for short time series with odd and even length
         rng = np.random.default_rng(1)
         for nsamples in [10,11]:
-            ystd = cn.powerlaw_psd_gaussian(
-                0, (500, 500, nsamples), random_state=rng
-            ).std(axis=-1)
+            ystd = np.array(cn.powerlaw_psd_gaussian(
+                0, (500, 500, nsamples), random_state=None
+            ).std(axis=-1))
             assert(abs(1 - ystd) < 3 * ystd.std()).mean() > 0.95
         
     def test_slope_distribution(self):
@@ -45,7 +46,7 @@ class TestPowerlawPsdGaussian(unittest.TestCase):
         rng = np.random.default_rng(1)
         
         for exponent in [.5, 1, 2]:
-            y = cn.powerlaw_psd_gaussian(exponent, size, fmin=fmin, random_state=rng)
+            y = np.array(cn.powerlaw_psd_gaussian(exponent, size, fmin=fmin, random_state=None))
             yfft = np.fft.fft(y)
             f = np.fft.fftfreq(y.shape[-1])
             m = f > 0 # mask
@@ -64,7 +65,7 @@ class TestPowerlawPsdGaussian(unittest.TestCase):
         n_steps   = 100
         rng = np.random.default_rng(1)
 
-        y  = cn.powerlaw_psd_gaussian(0, (n_repeats, n_steps), random_state=rng)
+        y  = np.array(cn.powerlaw_psd_gaussian(0, (n_repeats, n_steps), random_state=None))
 
         mean_squared_displacement = (y.sum(axis=-1)**2).mean(axis=0)
         standard_error            = (y.sum(axis=-1)**2).std(axis=0) / np.sqrt(n_repeats)
@@ -77,11 +78,11 @@ class TestPowerlawPsdGaussian(unittest.TestCase):
         seed = 1
 
         good_random_states = [
-            np.random.default_rng(seed), 
-            np.random.RandomState(seed), 
+            PRNGKey(seed), 
+            #np.random.RandomState(seed), 
             int(seed), 
-            np.int32(1),
-            True, 
+            #np.int32(1),
+            #True, 
             None
         ]
         for random_state in good_random_states:
@@ -103,11 +104,11 @@ class TestPowerlawPsdGaussian(unittest.TestCase):
         n = 5
         seed = 1
 
-        rs1 = np.random.default_rng(seed)
-        rs2 = np.random.default_rng(seed)
+        rs1 = PRNGKey(seed)
+        rs2 = PRNGKey(seed)
 
-        y1 = cn.powerlaw_psd_gaussian(exp, n, random_state=rs1)
+        y1 = np.array(cn.powerlaw_psd_gaussian(exp, n, random_state=rs1))
         np.random.seed(123)
-        y2 = cn.powerlaw_psd_gaussian(exp, n, random_state=rs2)
+        y2 = np.array(cn.powerlaw_psd_gaussian(exp, n, random_state=rs2))
 
         np.testing.assert_array_equal(y1, y2)
