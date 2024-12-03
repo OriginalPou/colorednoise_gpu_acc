@@ -6,7 +6,7 @@ import jax.numpy as jnp
 from jax import random
 from jax.numpy.fft import irfft, rfftfreq
 
-import numpy as np
+from time import time
 
 from functools import partial
 
@@ -118,9 +118,8 @@ def powerlaw_psd_gaussian(
     s_scale     = s_scale[(jnp.newaxis,) * dims_to_add + (Ellipsis,)]
     
     # prepare random number generator
-    print(type(random_state))
     if random_state is None or isinstance(random_state, int):
-        random_state = random.PRNGKey(random_state if random_state is not None else 0)
+        random_state = random.PRNGKey(random_state if random_state is not None else int(time()))
     elif isinstance(random_state, jax.Array):
         pass
     else :
