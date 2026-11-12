@@ -1,4 +1,3 @@
-```rst
 colorednoise.py
 ===============
 
@@ -177,4 +176,3 @@ Generate a broken power law spectrum, white below a specified frequency:
    # plt.loglog(f, s)
    # plt.grid(True)
    # plt.show()
-```
